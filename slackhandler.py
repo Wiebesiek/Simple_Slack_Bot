@@ -12,7 +12,7 @@ def _get_from_address(str):
 
 
 def notify(mail, channel=DEFAULT_CHANNEL):
-    if(mail["From"] == mysecrets.ticket_system_email_address):
+    if(_get_from_address(mail["From"]) == mysecrets.ticket_system_email_address):
         message_for_slack = mail['Subject'] + " <!here>"
     else:
         # todo: for testing purposes
