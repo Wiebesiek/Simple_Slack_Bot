@@ -7,6 +7,7 @@ import socket
 import time
 import emailhandler
 import mysecrets
+from logging.handlers import RotatingFileHandler
 
 
 # https://stackoverflow.com/questions/13466053/all-python-windows-service-can-not-starterror-1053
@@ -59,8 +60,16 @@ class AppServerSvc (win32serviceutil.ServiceFramework):
 
 if __name__ == '__main__':
     # set up logging
-    logging.basicConfig(format='%(asctime)s %(message)s',
-                        filename="C:\\slackbot_debug.txt",
-                        level=logging.DEBUG)
+    rfh = logging.handlers.RotatingFileHandler(
+        filename=mysecrets.log_file_location,
+        mode='a',
+        maxBytes=10000,
+        backupCount=3
+    )
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s %(message)s',
+        handlers=[rfh]
+    )
     logger = logging.getLogger()
     win32serviceutil.HandleCommandLine(AppServerSvc)
