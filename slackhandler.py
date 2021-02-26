@@ -7,6 +7,23 @@ TOKEN = mysecrets.slack_token
 DEFAULT_CHANNEL = mysecrets.default_slack_channel
 
 
+class SlackHandler:
+
+    def __init__(self):
+        self.current_ts = float(0)
+        # todo: change mysecrets playground id
+        self.default_channel_id = mysecrets.playground_id
+        self.token = TOKEN
+
+    def get_new_messages(self):
+        try:
+            client = WebClient(token=self.token)
+            history = client.conversations_history(channel=self.default_channel_id)
+        except SlackApiError as e:
+            logging.debug("slackhandler.py:: " + "ERROR: " + e.response["error"]
+
+
+
 def _get_from_address(str):
     return str[str.find("<")+1:str.find(">")]
 
