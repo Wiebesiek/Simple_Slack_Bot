@@ -1,10 +1,21 @@
 import mysecrets
 import logging
+import csv
+
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
 TOKEN = mysecrets.slack_token
 DEFAULT_CHANNEL = mysecrets.default_slack_channel
+
+
+class SlackHandler:
+    def __init__(self):
+        self.phonebook = {}
+        with open('phonebook.csv') as file:
+            csv_file = csv.DictReader(file)
+            for row in csv_file:
+                self.phonebook[row['Username']] = row['Phone_Number']
 
 
 def _get_from_address(str):

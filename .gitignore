@@ -129,5 +129,6 @@ dmypy.json
 .pyre/
 
 # My ignores
-/todo.txt
-/mysecrets.py
+todo.txt
+mysecrets.py
+phonebook.csv
