@@ -5,6 +5,9 @@ from slack_sdk.errors import SlackApiError
 
 TOKEN = mysecrets.slack_token
 DEFAULT_CHANNEL = mysecrets.default_slack_channel
+USERS = ['<!here>',
+         '<@' + mysecrets.user1_id + '>',
+         '<@' + mysecrets.user2_id + '>']
 
 
 class SlackHandler:
@@ -15,13 +18,51 @@ class SlackHandler:
         self.default_channel_id = mysecrets.playground_id
         self.token = TOKEN
 
-    def get_new_messages(self):
+    # can define timestamp to be used for new messages
+    def get_new_messages(self, time_stamp=None):
+        history = ""
+        if time_stamp is None:
+            time_stamp = self.current_ts
+
         try:
             client = WebClient(token=self.token)
-            history = client.conversations_history(channel=self.default_channel_id)
+            history = client.conversations_history(channel=self.default_channel_id, limit=10)
         except SlackApiError as e:
-            logging.debug("slackhandler.py:: " + "ERROR: " + e.response["error"]
+            logging.debug("slackhandler.py:: " +
+                          "ERROR: fetching new slack messages" +
+                          e.response["error"])
 
+        # get only new messages
+        new_messages = []
+        try:
+            if history.data:
+                for m in history.data['messages']:
+                    message_ts = float(m['ts'])
+                    if message_ts > time_stamp:
+                        new_messages.append(m)
+                        logging.debug("slackhandler.py:: " +
+                                      "Slack Message Found" +
+                                      m['text'])
+                        # update objects timestamp
+                        if message_ts > self.current_ts:
+                            self.current_ts = message_ts
+        except:
+            logging.debug("slackhandler.py:: " +
+                          "ERROR: Problem reading conversation history")
+
+        return new_messages
+
+
+def users_pinged_in_messages(msg_dict):
+    pinged_users = []
+    for m in msg_dict:
+        text = m['text']
+        for u in USERS:
+            if u in text:
+                if u not in pinged_users:
+                    pinged_users.append(u)
+
+    return pinged_users
 
 
 def _get_from_address(str):

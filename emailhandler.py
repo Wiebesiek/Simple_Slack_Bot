@@ -25,6 +25,12 @@ class emailhandler:
                           autodiscover=False,
                           access_type=DELEGATE)
 
+    # We have no use for calendar items
+    def _delete_cal_items(self):
+        cal = self.account.calendar.all()
+        for c in cal:
+            c.delete()
+
     # doesn't add ticket if it is already in the deque
     def add_ticket(self, ticket):
         if not self.last_ten_tickets.__contains__(ticket):
@@ -65,6 +71,7 @@ class emailhandler:
                 return emails
 
         if self.protocol == 'EWS':
+            self._delete_cal_items()
             # get unread emails
             unread = self.account.inbox.filter(is_read=False)
             logging.debug("emailhandler.py get_emails()::" + str(unread.count()))
@@ -92,6 +99,7 @@ class emailhandler:
                 client.shutdown()
 
         if self.protocol == 'EWS':
+            self._delete_cal_items()
             # get unread emails
             unread = self.account.inbox.filter(is_read=False)
             for mail in unread:

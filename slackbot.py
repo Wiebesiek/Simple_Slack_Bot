@@ -7,6 +7,7 @@ import socket
 import time
 import emailhandler
 import mysecrets
+import slackhandler
 from logging.handlers import RotatingFileHandler
 
 
@@ -17,6 +18,11 @@ class AppServerSvc (win32serviceutil.ServiceFramework):
 
     def __init__(self, args):
         self.eh = emailhandler.emailhandler()
+        self.sh = slackhandler.SlackHandler()
+
+        # set up current timestamp for newest timestamp
+        self.sh.get_new_messages()
+
         win32serviceutil.ServiceFramework.__init__(self, args)
         self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
         self.is_running = True
@@ -54,8 +60,17 @@ class AppServerSvc (win32serviceutil.ServiceFramework):
             # We'll leave this excessive logging on, for now
             logger.debug('slackbot.py:: Entering while loop')
             time.sleep(60)
+
+            # check emails
             emails = self.eh.get_emails()
             self.eh.process_emails(emails)
+
+            # check slack channel
+            # todo: Need to break it down on a per message basis not a 60 second basis
+            # this way we can put a specific message on the send sms
+            messages = self.sh.get_new_messages()
+            for m in messages:
+
 
 
 if __name__ == '__main__':
