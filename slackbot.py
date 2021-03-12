@@ -63,7 +63,7 @@ if __name__ == '__main__':
     rfh = logging.handlers.RotatingFileHandler(
         filename=mysecrets.log_file_location,
         mode='a',
-        maxBytes=10000,
+        maxBytes=1000,
         backupCount=3
     )
     logging.basicConfig(

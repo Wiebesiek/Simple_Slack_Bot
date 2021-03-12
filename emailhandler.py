@@ -71,12 +71,15 @@ class emailhandler:
 
             # convert from exchangelib.items.message.Message object to email object
             for mail in unread:
-                emails.append(email.message_from_string(mail.mime_content.decode("UTF-8")))
-                logging.debug("emailhandler.py get_emails unread email found ::" + mail.subject)
+                try:
+                    emails.append(email.message_from_string(mail.mime_content.decode("UTF-8")))
+                    logging.debug("emailhandler.py get_emails unread email found :: " + mail.subject)
 
-                # mark as read
-                mail.is_read = True
-                mail.save(update_fields=['is_read'])
+                    # mark as read
+                    mail.is_read = True
+                    mail.save(update_fields=['is_read'])
+                except:
+                    logger.error("emailhandler.py:: ERROR in reading email. Not email?")
 
             return emails
 
@@ -110,4 +113,5 @@ def _get_ticket_num(subj):
         if re.search(pattern, subj):
             num_str = re.search(r"\d+",subj)
             return int(num_str.group(0))
+
 
