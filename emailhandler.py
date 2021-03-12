@@ -5,7 +5,8 @@ import re
 import email
 import logging
 import slackhandler
-from exchangelib import Credentials, Account, DELEGATE, Configuration, FaultTolerance
+from exchangelib import Credentials, Account, DELEGATE, Configuration, FaultTolerance, Message, Mailbox, CalendarItem
+from exchangelib.items import MeetingCancellation, MeetingRequest
 from imapclient import IMAPClient
 from collections import deque
 
@@ -33,7 +34,7 @@ class emailhandler:
     def process_emails(self, emails):
         if isinstance(emails, list):
             for mail in emails:
-                ticket_num = self.add_ticket(_get_ticket_num(mail['Subject']))
+                ticket_num = self.add_ticket(_get_ticket_num(str(mail['Subject'])))
                 if ticket_num:
                     logging.debug("sending message to slackhandler.notify")
                     slackhandler.notify(mail)
@@ -72,7 +73,7 @@ class emailhandler:
             # convert from exchangelib.items.message.Message object to email object
             for mail in unread:
                 emails.append(email.message_from_string(mail.mime_content.decode("UTF-8")))
-                logging.debug("emailhandler.py get_emails unread email found ::" + mail.subject)
+                logging.debug("emailhandler.py get_emails unread email found ::" + str(mail.subject))
 
                 # mark as read
                 mail.is_read = True
@@ -94,10 +95,25 @@ class emailhandler:
             # get unread emails
             unread = self.account.inbox.filter(is_read=False)
             for mail in unread:
-                logging.debug('emailhandler.py:: Unread email found in read_all_emails: ' + mail.subject)
+                logging.debug('emailhandler.py:: Unread email found in read_all_emails: ' + str(mail.subject))
                 mail.is_read = True
                 # todo: save is returning a massive string - check documentation
                 mail.save(update_fields=['is_read'])
+
+    def send_email(self, email_address, subject, body):
+        m = Message(account=self.account,
+                    folder=self.account.sent,
+                    subject=subject,
+                    body=body,
+                    to_recipients=[email_address])
+        m.send_and_save()
+
+    def process_pinged_users(self, pinged_users, message):
+        for u in pinged_users:
+            if u in mysecrets.phonebook.keys():
+                self.send_email(mysecrets.phonebook[u],
+                                subject='Slackbot Alert',
+                                body=message)
 
 
 # get ticket number from a valid high priority subject line
