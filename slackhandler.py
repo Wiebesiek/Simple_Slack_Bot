@@ -22,7 +22,7 @@ def _get_from_address(str):
     return str[str.find("<")+1:str.find(">")]
 
 
-def notify(mail, channel=DEFAULT_CHANNEL):
+def notifyP1(mail, channel=DEFAULT_CHANNEL):
     if(_get_from_address(mail["From"]) == mysecrets.ticket_system_email_address):
         message_for_slack = mail['Subject'] + " <!here>"
     else:
@@ -40,3 +40,7 @@ def notify(mail, channel=DEFAULT_CHANNEL):
         logging.debug("slackhandler.py:: ASSERTION ERROR")
 
     logging.debug("slackhandler.py:: " + "message supplied is " + message_for_slack)
+
+
+def notifyP2(mail, channel=DEFAULT_CHANNEL):
+    notifyP1(mail)

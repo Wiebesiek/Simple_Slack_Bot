@@ -25,7 +25,7 @@ class emailhandler:
                           access_type=DELEGATE)
 
     # doesn't add ticket if it is already in the deque
-    def add_ticket(self, ticket):
+    def add_ticket_num(self, ticket):
         if not self.last_ten_tickets.__contains__(ticket):
             self.last_ten_tickets.append(ticket)
             return ticket
@@ -33,10 +33,22 @@ class emailhandler:
     def process_emails(self, emails):
         if isinstance(emails, list):
             for mail in emails:
-                ticket_num = self.add_ticket(_get_ticket_num(str(mail['Subject'])))
-                if ticket_num:
-                    logging.debug("sending message to slackhandler.notify")
-                    slackhandler.notify(mail)
+                num_pri_tuple = _get_ticket_num(str(mail['Subject']))
+                if num_pri_tuple:
+                    ticket_num = self.add_ticket_num(num_pri_tuple[0])
+                    if ticket_num:
+                        # This block is reached if it's a new ticket to the bot
+                        if num_pri_tuple[1] == 1:
+                            logging.debug("emailhandler.py :: sending message to slackhandler.notify priority 1")
+                            slackhandler.notifyP1(mail)
+                            pass
+                        elif num_pri_tuple[1] == 2:
+                            logging.debug("emailhandler.py :: sending message to slackhandler.notify priority 2")
+                            slackhandler.notifyP2(mail)
+                            pass
+                        else:
+                            logging.ERROR("Invalid block reached in process_emails")
+
 
 # returns array of new emails
     def get_emails(self):
@@ -105,13 +117,13 @@ class emailhandler:
 
 # get ticket number from a valid high priority subject line
 # If str in not in proper format, nothing is returned
+# Return tuple of (ticket_number, priority)
 def _get_ticket_num(subj):
-    if subj.find("Priority 1") > -1:
-        # emails follow the following format
-        # Incident# 12345 is a Priority 1 ticket and has been assigned to your team
-        pattern = re.compile(mysecrets.ticket_regex_string)
-        if re.search(pattern, subj):
-            num_str = re.search(r"\d+",subj)
-            return int(num_str.group(0))
+    # emails follow the following format
+    # Incident# 12345 is a Priority 1 ticket and has been assigned to your team
+    pattern = re.compile(mysecrets.ticket_regex_string)
+    if re.search(pattern, subj):
+        nums = re.findall(r"\d+", subj)
+        return int(nums[0]), int(nums[1])
 
 
