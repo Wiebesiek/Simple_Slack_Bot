@@ -5,9 +5,11 @@ import re
 import email
 import logging
 import slackhandler
-from exchangelib import Credentials, Account, DELEGATE, Configuration, FaultTolerance
+import csv
+from exchangelib import Credentials, Account, DELEGATE, Configuration, FaultTolerance, Message
 from imapclient import IMAPClient
 from collections import deque
+
 
 
 class emailhandler:
@@ -15,6 +17,7 @@ class emailhandler:
         self.last_ten_tickets = deque([], maxlen=count)
         self.protocol = protocol
         self.credentials = Credentials(mysecrets.username, mysecrets.password)
+        self.on_call = mysecrets.on_call
         self.config = Configuration(server=mysecrets.host,
                                     credentials=self.credentials,
                                     retry_policy=FaultTolerance())
@@ -23,6 +26,11 @@ class emailhandler:
                           credentials=self.credentials,
                           autodiscover=False,
                           access_type=DELEGATE)
+        self.phonebook = {}
+        with open('phonebook.csv') as file:
+            csv_file = csv.DictReader(file)
+            for row in csv_file:
+                self.phonebook[row['Username']] = row['Phone_Number']
 
     # doesn't add ticket if it is already in the deque
     def add_ticket_num(self, ticket):
@@ -41,6 +49,7 @@ class emailhandler:
                         if num_pri_tuple[1] == 1:
                             logging.debug("emailhandler.py :: sending message to slackhandler.notify priority 1")
                             slackhandler.notifyP1(mail)
+                            self.notify_on_call(mail)
                             pass
                         elif num_pri_tuple[1] == 2:
                             logging.debug("emailhandler.py :: sending message to slackhandler.notify priority 2")
@@ -48,7 +57,6 @@ class emailhandler:
                             pass
                         else:
                             logging.ERROR("Invalid block reached in process_emails")
-
 
 # returns array of new emails
     def get_emails(self):
@@ -113,6 +121,21 @@ class emailhandler:
                 mail.is_read = True
                 # todo: save is returning a massive string - check documentation
                 mail.save(update_fields=['is_read'])
+
+    def notify_on_call(self, mail):
+        if self.on_call:
+            message_to_send = Message(
+                account=self.account,
+                subject='',
+                body=str(mail.subject),
+                to_recipients=[self.on_call + '@vtext.com']
+            )
+            try:
+                message_to_send.send()
+            except:
+                logging.error("emailhandler.py :: FAILED TO SEND ON CALL TEXT")
+        else:
+            logging.debug("emailhandler.py :: Unable to send on call text, on_call is empty")
 
 
 # get ticket number from a valid high priority subject line
