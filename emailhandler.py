@@ -27,10 +27,10 @@ class emailhandler:
                           autodiscover=False,
                           access_type=DELEGATE)
         self.phonebook = {}
-        with open('phonebook.csv') as file:
-            csv_file = csv.DictReader(file)
-            for row in csv_file:
-                self.phonebook[row['Username']] = row['Phone_Number']
+        # with open('phonebook.csv') as file:
+        #     csv_file = csv.DictReader(file)
+        #     for row in csv_file:
+        #         self.phonebook[row['Username']] = row['Phone_Number']
 
     # doesn't add ticket if it is already in the deque
     def add_ticket_num(self, ticket):
