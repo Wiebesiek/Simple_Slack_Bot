@@ -9,6 +9,7 @@ import csv
 from exchangelib import Credentials, Account, DELEGATE, Configuration, FaultTolerance, Message
 from imapclient import IMAPClient
 from collections import deque
+from os import path
 
 
 class emailhandler:
@@ -16,7 +17,9 @@ class emailhandler:
         self.last_ten_tickets = deque([], maxlen=count)
         self.protocol = protocol
         self.credentials = Credentials(mysecrets.username, mysecrets.password)
-        self.on_call = mysecrets.on_call
+        self.on_call = _get_on_call_number_from_file("oncall.txt")
+        if not self.on_call:
+            self.on_call = mysecrets.on_call
         self.config = Configuration(server=mysecrets.host,
                                     credentials=self.credentials,
                                     retry_policy=FaultTolerance())
@@ -45,6 +48,7 @@ class emailhandler:
                 on_call_phone_num = _on_call_update_email(mail)
                 if on_call_phone_num:
                     self.on_call = on_call_phone_num
+                    _update_on_call_file(on_call_phone_num)
                     logging.debug("emailhandler.py :: On call number has beeen updated to " + on_call_phone_num)
                     slackhandler.notifyOnCallUpdate(on_call_phone_num)
 
@@ -177,3 +181,27 @@ def _on_call_update_email(mail):
                 phone_num_groups = re.match(r"^\d{10}", p.get_payload())
                 if phone_num_groups:
                     return phone_num_groups.group(0)
+
+
+def _update_on_call_file(phone_number):
+    try:
+        with open("oncall.txt", 'w') as file_obj:
+            file_obj.write(phone_number)
+    except IOError as e:
+        logging.error("emailhandler.py :: IO error recieved while trying to update oncall.txt")
+    except:
+        logging.error("emailhandler.py :: Unexpected occured trying to update oncall.txt")
+
+
+def _get_on_call_number_from_file(oncall_file):
+    phone_number = ''
+    try:
+        with open(oncall_file, 'r') as file_obj:
+            phone_number = file_obj.readline(10)
+    except IOError as e:
+        logging.error("emailhandler.py :: IO error recieved while trying to read oncall.txt")
+    except:
+        logging.error("emailhandler.py :: Unexpected occured trying to read oncall.txt")
+    return phone_number
+
+
