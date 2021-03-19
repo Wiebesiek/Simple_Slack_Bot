@@ -50,10 +50,6 @@ class AppServerSvc (win32serviceutil.ServiceFramework):
             handlers=[rfh]
         )
         logger = logging.getLogger()
-        # logging.basicConfig(format='%(asctime)s %(message)s',
-        #                     filename=mysecrets.log_file_location,
-        #                     level=logging.DEBUG)
-        # logger = logging.getLogger()
         logger.debug('slackbot.py:: Service start')
 
         # email account is only for this bot
@@ -70,17 +66,4 @@ class AppServerSvc (win32serviceutil.ServiceFramework):
 
 
 if __name__ == '__main__':
-    # set up logging
-    # rfh = logging.handlers.RotatingFileHandler(
-    #     filename=mysecrets.log_file_location,
-    #     mode='a',
-    #     maxBytes=1000,
-    #     backupCount=3
-    # )
-    # logging.basicConfig(
-    #     level=logging.DEBUG,
-    #     format='%(asctime)s %(message)s',
-    #     handlers=[rfh]
-    # )
-    # logger = logging.getLogger()
     win32serviceutil.HandleCommandLine(AppServerSvc)
