@@ -176,4 +176,4 @@ def _on_call_update_email(mail):
             for p in mail.get_payload():
                 phone_num_groups = re.match(r"^\d{10}", p.get_payload())
                 if phone_num_groups:
-                    return phone_num_groups
+                    return phone_num_groups.group(0)
