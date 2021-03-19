@@ -38,10 +38,22 @@ class AppServerSvc (win32serviceutil.ServiceFramework):
 
     def main(self):
         # set up logging
-        logging.basicConfig(format='%(asctime)s %(message)s',
-                            filename=mysecrets.log_file_location,
-                            level=logging.DEBUG)
+        rfh = logging.handlers.RotatingFileHandler(
+            filename=mysecrets.log_file_location,
+            mode='a',
+            maxBytes=10 * 1024 * 1024,
+            backupCount=3
+        )
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format='%(asctime)s %(message)s',
+            handlers=[rfh]
+        )
         logger = logging.getLogger()
+        # logging.basicConfig(format='%(asctime)s %(message)s',
+        #                     filename=mysecrets.log_file_location,
+        #                     level=logging.DEBUG)
+        # logger = logging.getLogger()
         logger.debug('slackbot.py:: Service start')
 
         # email account is only for this bot
@@ -52,7 +64,6 @@ class AppServerSvc (win32serviceutil.ServiceFramework):
 
         while self.is_running:
             # We'll leave this excessive logging on, for now
-            logger.debug('slackbot.py:: Entering while loop')
             time.sleep(60)
             emails = self.eh.get_emails()
             self.eh.process_emails(emails)
@@ -60,16 +71,16 @@ class AppServerSvc (win32serviceutil.ServiceFramework):
 
 if __name__ == '__main__':
     # set up logging
-    rfh = logging.handlers.RotatingFileHandler(
-        filename=mysecrets.log_file_location,
-        mode='a',
-        maxBytes=1000,
-        backupCount=3
-    )
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s %(message)s',
-        handlers=[rfh]
-    )
-    logger = logging.getLogger()
+    # rfh = logging.handlers.RotatingFileHandler(
+    #     filename=mysecrets.log_file_location,
+    #     mode='a',
+    #     maxBytes=1000,
+    #     backupCount=3
+    # )
+    # logging.basicConfig(
+    #     level=logging.DEBUG,
+    #     format='%(asctime)s %(message)s',
+    #     handlers=[rfh]
+    # )
+    # logger = logging.getLogger()
     win32serviceutil.HandleCommandLine(AppServerSvc)
