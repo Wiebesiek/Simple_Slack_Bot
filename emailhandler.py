@@ -168,10 +168,12 @@ def _convert_from_exchange_email(mail):
 
 def _on_call_update_email(mail):
     if isinstance(mail, email.message.Message):
-        if str.capitalize(mail['Subject']) == "UPDATE ON-CALL":
-            # find first 10 digit integer
-            phone_num_groups = re.match(r"^\d{10}$", mail['Body'])
-            if phone_num_groups:
-                return phone_num_groups.group(0)
-    return
-
+        if str(mail['Subject']).upper() == "UPDATE ON-CALL":
+            # first payload seems to be body - This could change depending where and how it's sent
+            # Should be consistent throughout enterprise
+            # logging.debug("emailhandler.py :: On-Call Update Found")
+            phone_num_groups = ''
+            for p in mail.get_payload():
+                phone_num_groups = re.match(r"^\d{10}", p.get_payload())
+                if phone_num_groups:
+                    return phone_num_groups
