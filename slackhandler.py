@@ -14,15 +14,26 @@ def _get_from_address(str):
 
 
 def notifyP1(mail, channel=DEFAULT_CHANNEL):
-    if(_get_from_address(mail["From"]) == mysecrets.ticket_system_email_address):
+    if _get_from_address(mail["From"]) == mysecrets.ticket_system_email_address:
         message_for_slack = mail['Subject'] + " <!here>"
     else:
         # todo: for testing purposes
         message_for_slack = mail['Subject']
+    send_slack_message(message_for_slack)
 
+
+def notifyP2(mail, channel=DEFAULT_CHANNEL):
+    notifyP1(mail)
+
+
+def notifyOnCallUpdate(on_call_phone_num):
+    send_slack_message("On call number has been updated! New on call number is " + on_call_phone_num)
+
+
+def send_slack_message(message, channel=DEFAULT_CHANNEL):
     try:
         client = WebClient(token=TOKEN)
-        response = client.chat_postMessage(channel=channel, text=message_for_slack)
+        response = client.chat_postMessage(channel=channel, text=message)
         # assertion errors are being raised when there isn't an issue. Looks like response has an extra
         # return carriage when it gets to a certain length.
         # response["message"]["text"] == message_for_slack
@@ -32,8 +43,4 @@ def notifyP1(mail, channel=DEFAULT_CHANNEL):
     except AssertionError as e:
         logging.debug("slackhandler.py:: ASSERTION ERROR")
 
-    logging.debug("slackhandler.py:: " + "message supplied is " + message_for_slack)
-
-
-def notifyP2(mail, channel=DEFAULT_CHANNEL):
-    notifyP1(mail)
+    logging.debug("slackhandler.py:: " + "message supplied is " + message)

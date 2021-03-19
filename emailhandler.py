@@ -11,7 +11,6 @@ from imapclient import IMAPClient
 from collections import deque
 
 
-
 class emailhandler:
     def __init__(self, count=10, protocol='EWS'):
         self.last_ten_tickets = deque([], maxlen=count)
@@ -42,6 +41,13 @@ class emailhandler:
     def process_emails(self, emails):
         if isinstance(emails, list):
             for mail in emails:
+                # Update on call logic
+                on_call_phone_num = _on_call_update_email(mail)
+                if on_call_phone_num:
+                    self.on_call = on_call_phone_num
+                    logging.debug("emailhandler.py :: On call number has beeen updated to " + on_call_phone_num)
+                    slackhandler.notifyOnCallUpdate(on_call_phone_num)
+
                 num_pri_tuple = _get_ticket_num(str(mail['Subject']))
                 if num_pri_tuple:
                     ticket_num = self.add_ticket_num(num_pri_tuple[0])
@@ -91,7 +97,7 @@ class emailhandler:
             # convert from exchangelib.items.message.Message object to email object
             for mail in unread:
                 try:
-                    emails.append(email.message_from_string(mail.mime_content.decode("UTF-8")))
+                    emails.append(_convert_from_exchange_email(mail))
                     logging.debug("emailhandler.py get_emails unread email found :: " + str(mail.subject))
 
                     # mark as read
@@ -158,3 +164,14 @@ def _get_ticket_num(subj):
 
 def _convert_from_exchange_email(mail):
     return email.message_from_string(mail.mime_content.decode("UTF-8"))
+
+
+def _on_call_update_email(mail):
+    if isinstance(mail, email.message.Message):
+        if str.capitalize(mail['Subject']) == "UPDATE ON-CALL":
+            # find first 10 digit integer
+            phone_num_groups = re.match(r"^\d{10}$", mail['Body'])
+            if phone_num_groups:
+                return phone_num_groups.group(0)
+    return
+
