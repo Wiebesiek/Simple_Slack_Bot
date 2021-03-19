@@ -38,6 +38,7 @@ class emailhandler:
             self.last_ten_tickets.append(ticket)
             return ticket
 
+    # Needs to be of email type and not exchangelib message
     def process_emails(self, emails):
         if isinstance(emails, list):
             for mail in emails:
@@ -120,19 +121,20 @@ class emailhandler:
                 # todo: save is returning a massive string - check documentation
                 mail.save(update_fields=['is_read'])
 
+    # mail needs to be of email type and not exchangelib message
     def notify_on_call(self, mail):
-        on_call_email_to_SMS = self.on_call + "@vtext.com"
+        on_call_email_to_sms = self.on_call + "@vtext.com"
         logging.debug("emailhandler.py :: Entering Notify_on_Call" +
                       "\n - Subject = " +
-                      str(mail.subject) +
+                      str(mail["Subject"]) +
                       "\n to_recipients = " +
-                      on_call_email_to_SMS)
+                      on_call_email_to_sms)
         if self.on_call:
             message_to_send = Message(
                 account=self.account,
                 subject='',
-                body=str(mail.subject),
-                to_recipients=[on_call_email_to_SMS]
+                body=str(mail["Subject"]),
+                to_recipients=[on_call_email_to_sms]
             )
             try:
                 message_to_send.send()
@@ -154,3 +156,5 @@ def _get_ticket_num(subj):
         return int(nums[0]), int(nums[1])
 
 
+def _convert_from_exchange_email(mail):
+    return email.message_from_string(mail.mime_content.decode("UTF-8"))
