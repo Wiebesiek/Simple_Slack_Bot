@@ -23,7 +23,9 @@ def notifyP1(mail, channel=DEFAULT_CHANNEL):
     try:
         client = WebClient(token=TOKEN)
         response = client.chat_postMessage(channel=channel, text=message_for_slack)
-        assert response["message"]["text"] == message_for_slack
+        # assertion errors are being raised when there isn't an issue. Looks like response has an extra
+        # return carriage when it gets to a certain length.
+        # response["message"]["text"] == message_for_slack
     except SlackApiError as e:
         logging.debug("slackhandler.py:: " + f"Response 'ok' : {e.response['ok']}")
         logging.debug("slackhandler.py:: " + "ERROR: " + e.response["error"])

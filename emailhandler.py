@@ -50,11 +50,9 @@ class emailhandler:
                             logging.debug("emailhandler.py :: sending message to slackhandler.notify priority 1")
                             slackhandler.notifyP1(mail)
                             self.notify_on_call(mail)
-                            pass
                         elif num_pri_tuple[1] == 2:
                             logging.debug("emailhandler.py :: sending message to slackhandler.notify priority 2")
                             slackhandler.notifyP2(mail)
-                            pass
                         else:
                             logging.ERROR("Invalid block reached in process_emails")
 
@@ -123,12 +121,18 @@ class emailhandler:
                 mail.save(update_fields=['is_read'])
 
     def notify_on_call(self, mail):
+        on_call_email_to_SMS = self.on_call + "@vtext.com"
+        logging.debug("emailhandler.py :: Entering Notify_on_Call" +
+                      "\n - Subject = " +
+                      str(mail.subject) +
+                      "\n to_recipients = " +
+                      on_call_email_to_SMS)
         if self.on_call:
             message_to_send = Message(
                 account=self.account,
                 subject='',
                 body=str(mail.subject),
-                to_recipients=[self.on_call + '@vtext.com']
+                to_recipients=[on_call_email_to_SMS]
             )
             try:
                 message_to_send.send()
