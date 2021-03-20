@@ -17,7 +17,7 @@ class emailhandler:
         self.last_ten_tickets = deque([], maxlen=count)
         self.protocol = protocol
         self.credentials = Credentials(mysecrets.username, mysecrets.password)
-        self.on_call = _get_on_call_number_from_file("oncall.txt")
+        self.on_call = _get_on_call_number_from_file(mysecrets.oncalltxt_location)
         if not self.on_call:
             self.on_call = mysecrets.on_call
         self.config = Configuration(server=mysecrets.host,
@@ -185,7 +185,7 @@ def _on_call_update_email(mail):
 
 def _update_on_call_file(phone_number):
     try:
-        with open("oncall.txt", 'w') as file_obj:
+        with open(mysecrets.oncalltxt_location, 'w') as file_obj:
             file_obj.write(phone_number)
     except IOError as e:
         logging.error("emailhandler.py :: IO error recieved while trying to update oncall.txt")
