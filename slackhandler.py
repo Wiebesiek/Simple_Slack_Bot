@@ -44,3 +44,7 @@ def send_slack_message(message, channel=DEFAULT_CHANNEL):
         logging.debug("slackhandler.py:: ASSERTION ERROR")
 
     logging.debug("slackhandler.py:: " + "message supplied is " + message)
+
+
+def notify_inform_who_is_on_call(phone_num):
+    send_slack_message("The current on call number is " + phone_num)

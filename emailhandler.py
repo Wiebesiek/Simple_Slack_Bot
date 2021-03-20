@@ -52,20 +52,28 @@ class emailhandler:
                     logging.debug("emailhandler.py :: On call number has beeen updated to " + on_call_phone_num)
                     slackhandler.notifyOnCallUpdate(on_call_phone_num)
 
-                num_pri_tuple = _get_ticket_num(str(mail['Subject']))
-                if num_pri_tuple:
-                    ticket_num = self.add_ticket_num(num_pri_tuple[0])
-                    if ticket_num:
-                        # This block is reached if it's a new ticket to the bot
-                        if num_pri_tuple[1] == 1:
-                            logging.debug("emailhandler.py :: sending message to slackhandler.notify priority 1")
-                            slackhandler.notifyP1(mail)
-                            self.notify_on_call(mail)
-                        elif num_pri_tuple[1] == 2:
-                            logging.debug("emailhandler.py :: sending message to slackhandler.notify priority 2")
-                            slackhandler.notifyP2(mail)
-                        else:
-                            logging.ERROR("Invalid block reached in process_emails")
+                # Who is on call request
+                elif _on_call_request_email(mail):
+                    logging.debug("emailhandler.py :: on call request notification" +
+                                  " being sent to slackhandler")
+                    slackhandler.notify_inform_who_is_on_call(self.on_call)
+
+                # Priority 1 or 2 logic
+                else:
+                    num_pri_tuple = _get_ticket_num(str(mail['Subject']))
+                    if num_pri_tuple:
+                        ticket_num = self.add_ticket_num(num_pri_tuple[0])
+                        if ticket_num:
+                            # This block is reached if it's a new ticket to the bot
+                            if num_pri_tuple[1] == 1:
+                                logging.debug("emailhandler.py :: sending message to slackhandler.notify priority 1")
+                                slackhandler.notifyP1(mail)
+                                self.notify_on_call(mail)
+                            elif num_pri_tuple[1] == 2:
+                                logging.debug("emailhandler.py :: sending message to slackhandler.notify priority 2")
+                                slackhandler.notifyP2(mail)
+                            else:
+                                logging.ERROR("Invalid block reached in process_emails")
 
 # returns array of new emails
     def get_emails(self):
@@ -205,3 +213,9 @@ def _get_on_call_number_from_file(oncall_file):
     return phone_number
 
 
+def _on_call_request_email(mail):
+    if isinstance(mail, email.message.Message):
+        if str(mail['Subject']).upper() == "SLACKBOT WHO IS ON CALL":
+            logging.debug("emailhandler.py :: _on_call_request_email found!")
+            return True
+    return False
