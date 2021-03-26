@@ -5,11 +5,9 @@ import re
 import email
 import logging
 import slackhandler
-import csv
 from exchangelib import Credentials, Account, DELEGATE, Configuration, FaultTolerance, Message
 from imapclient import IMAPClient
 from collections import deque
-from os import path
 
 
 class emailhandler:
@@ -18,6 +16,7 @@ class emailhandler:
         self.protocol = protocol
         self.credentials = Credentials(mysecrets.username, mysecrets.password)
         self.on_call = _get_on_call_number_from_file(mysecrets.oncalltxt_location)
+        self.permanent_numbers = mysecrets.per
         if not self.on_call:
             self.on_call = mysecrets.on_call
         self.config = Configuration(server=mysecrets.host,
@@ -68,14 +67,17 @@ class emailhandler:
                             if num_pri_tuple[1] == 1:
                                 logging.debug("emailhandler.py :: sending message to slackhandler.notify priority 1")
                                 slackhandler.notifyP1(mail)
-                                self.notify_on_call(mail)
+                                self.notify_on_call(mail, self.on_call)
+                                for num in self.permanent_numbers:
+                                    if num != self.on_call:
+                                        self.notify_on_call(mail, num)
                             elif num_pri_tuple[1] == 2:
                                 logging.debug("emailhandler.py :: sending message to slackhandler.notify priority 2")
                                 slackhandler.notifyP2(mail)
                             else:
                                 logging.ERROR("Invalid block reached in process_emails")
 
-# returns array of new emails
+    # returns array of new emails
     def get_emails(self):
         if self.protocol == 'IMAP':
             with IMAPClient(host=mysecrets.host) as client:
@@ -140,14 +142,14 @@ class emailhandler:
                 mail.save(update_fields=['is_read'])
 
     # mail needs to be of email type and not exchangelib message
-    def notify_on_call(self, mail):
-        on_call_email_to_sms = self.on_call + "@vtext.com"
+    def notify_on_call(self, mail, phone_number):
+        on_call_email_to_sms = phone_number + "@vtext.com"
         logging.debug("emailhandler.py :: Entering Notify_on_Call" +
                       "\n - Subject = " +
                       str(mail["Subject"]) +
                       "\n to_recipients = " +
                       on_call_email_to_sms)
-        if self.on_call:
+        if phone_number:
             message_to_send = Message(
                 account=self.account,
                 subject='',
