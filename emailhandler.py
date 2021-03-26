@@ -16,7 +16,7 @@ class emailhandler:
         self.protocol = protocol
         self.credentials = Credentials(mysecrets.username, mysecrets.password)
         self.on_call = _get_on_call_number_from_file(mysecrets.oncalltxt_location)
-        self.permanent_numbers = mysecrets.per
+        self.permanent_numbers = mysecrets.permanent_numbers
         if not self.on_call:
             self.on_call = mysecrets.on_call
         self.config = Configuration(server=mysecrets.host,
