@@ -5,6 +5,7 @@ import re
 import email
 import logging
 import slackhandler
+import my_parser
 from exchangelib import Credentials, Account, DELEGATE, Configuration, FaultTolerance, Message
 from imapclient import IMAPClient
 from collections import deque
@@ -23,10 +24,10 @@ class emailhandler:
                                     credentials=self.credentials,
                                     retry_policy=FaultTolerance())
         self.account = Account(primary_smtp_address=mysecrets.email_address,
-                          config=self.config,
-                          credentials=self.credentials,
-                          autodiscover=False,
-                          access_type=DELEGATE)
+                               config=self.config,
+                               credentials=self.credentials,
+                               autodiscover=False,
+                               access_type=DELEGATE)
         self.phonebook = {}
         # with open('phonebook.csv') as file:
         #     csv_file = csv.DictReader(file)
@@ -150,14 +151,23 @@ class emailhandler:
                       "\n to_recipients = " +
                       on_call_email_to_sms)
         if phone_number:
+            body_string = (mail["Subject"] +
+                           "\n" +
+                           "Center ID: " +
+                           my_parser.get_cid(mail) +
+                           "\n"
+                           "Summary: " +
+                           my_parser.get_summary(mail))
+
             message_to_send = Message(
                 account=self.account,
                 subject='',
-                body=str(mail["Subject"]),
+                body=body_string,
                 to_recipients=[on_call_email_to_sms]
             )
             try:
                 message_to_send.send()
+                logging.debug("emailhandler.py :: email sent to " + str(on_call_email_to_sms))
             except:
                 logging.error("emailhandler.py :: FAILED TO SEND ON CALL TEXT")
         else:

@@ -1,5 +1,6 @@
 import mailparser
 import email
+import re
 
 
 def get_body_string(mail: email.message.Message):
@@ -9,13 +10,28 @@ def get_body_string(mail: email.message.Message):
 
 def get_summary(mail: email.message.Message):
     body_string = get_body_string(mail)
-    # \n\nSummary\n\n    is the first tag
-    # ^ this tag may be unreliable
-    # \nSummary         Internet issues
-    # ^ This was the tag on the most recent ticket.
-    start = body_string.find("\n\nSummary\n\n") + 11
-    if start < 11:
-        return "Summary Not Found"
-    # \n\nTarget Resolution is the end tag
-    end = body_string.find("\n\nTarget Resolution")
-    return body_string[start:end]
+    # Because of how the subject is hard formatted,
+    # First instance of 'Summary' is what we always be looking for
+    summary_match = re.search(r"Summary[\s,\n]*", body_string)
+    if summary_match:
+        end = body_string.find("\n", summary_match.end())
+        if end > summary_match.end():
+            return body_string[summary_match.end():end]
+        else:
+            return "Summary not found correctly"
+    else:
+        return "Summary not found"
+
+
+def get_cid(mail: email.message.Message):
+    # \n\n\nContact Information
+    # We'll just search for 2 new lines before Contact Information and then whitespace followed by Customer
+    body_string = get_body_string(mail)
+    ci = re.search(r"Contact Information[\s,\n]*Customer", body_string)
+    if ci:
+        ci_string = body_string[ci.end():]
+        company_id = re.search(r"Cost Center[\s,\n]*", ci_string)
+        if company_id:
+            return ci_string[company_id.end():company_id.end() + 3]
+    else:
+        return "Center ID Not Found"
