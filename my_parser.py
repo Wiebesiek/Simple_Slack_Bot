@@ -3,12 +3,12 @@ import email
 import re
 
 
-def get_body_string(mail: email.message.Message):
+def get_body_string(mail):
     if isinstance(mail, email.message.Message):
         return mailparser.parse_from_string(mail.as_string()).body
 
 
-def get_summary(mail: email.message.Message):
+def get_summary(mail):
     body_string = get_body_string(mail)
     # Because of how the subject is hard formatted,
     # First instance of 'Summary' is what we always be looking for
@@ -23,7 +23,7 @@ def get_summary(mail: email.message.Message):
         return "Summary not found"
 
 
-def get_cid(mail: email.message.Message):
+def get_cid(mail):
     # \n\n\nContact Information
     # We'll just search for 2 new lines before Contact Information and then whitespace followed by Customer
     body_string = get_body_string(mail)
