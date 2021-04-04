@@ -1,6 +1,7 @@
 import mysecrets
 import logging
 import csv
+import my_parser
 
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
@@ -15,10 +16,22 @@ def _get_from_address(str):
 
 def notifyP1(mail, channel=DEFAULT_CHANNEL):
     if _get_from_address(mail["From"]) == mysecrets.ticket_system_email_address:
-        message_for_slack = mail['Subject'] + " <!here>"
+        message_for_slack = (mail["Subject"] +
+                       "\n" +
+                       "Center ID: " +
+                       my_parser.get_cid(mail) +
+                       "\n"
+                       "Summary: " +
+                       my_parser.get_summary(mail))
     else:
         # todo: for testing purposes
-        message_for_slack = mail['Subject']
+        message_for_slack = (mail["Subject"] +
+                             "\n" +
+                             "Center ID: " +
+                             my_parser.get_cid(mail) +
+                             "\n"
+                             "Summary: " +
+                             my_parser.get_summary(mail))
     send_slack_message(message_for_slack)
 
 
