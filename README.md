@@ -3,8 +3,9 @@ A basic slack bot that will post when emails are received.
 
 ## Installation
 1. Create virtual environment with preferred method.
-2. python slackbot.py install
-3. Configure service to be run with credentials that the virtual environment is running in.
+2. Install requirements via pip install -r requirements.txt 
+3. python slackbot.py install
+4. Configure service to be run with credentials that the virtual environment is running in.
 
 ## Troubleshooting Installation
 If you are receiving errors starting the service, try to run the program from the virtual environment:
