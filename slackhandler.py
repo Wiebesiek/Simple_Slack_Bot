@@ -11,21 +11,21 @@ DEFAULT_CHANNEL = mysecrets.default_slack_channel
 
 
 def _get_from_address(str):
-    return str[str.find("<")+1:str.find(">")]
+    return str[str.find("<") + 1:str.find(">")]
 
 
 def notifyP1(mail, channel=DEFAULT_CHANNEL):
     if _get_from_address(mail["From"]) == mysecrets.ticket_system_email_address:
-        message_for_slack = (mail["Subject"] +
-                       "\n" +
-                       "Center ID: " +
-                       my_parser.get_cid(mail) +
-                       "\n"
-                       "Summary: " +
-                       my_parser.get_summary(mail))
+        message_for_slack = (my_parser.parse_subject_for_slack(mail["Subject"]) +
+                             "\n" +
+                             "Center ID: " +
+                             my_parser.get_cid(mail) +
+                             "\n"
+                             "Summary: " +
+                             my_parser.get_summary(mail))
     else:
         # todo: for testing purposes
-        message_for_slack = (mail["Subject"] +
+        message_for_slack = (my_parser.parse_subject_for_slack(mail["Subject"]) +
                              "\n" +
                              "Center ID: " +
                              my_parser.get_cid(mail) +
