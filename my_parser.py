@@ -35,3 +35,11 @@ def get_cid(mail):
             return ci_string[company_id.end():company_id.end() + 3]
     else:
         return "Center ID Not Found"
+
+
+def parse_subject_for_slack(str):
+    ret_val = re.search(r" and has been", str)
+    if ret_val:
+        return str[0:ret_val.start()]
+    else:
+        return str
