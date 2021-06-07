@@ -38,7 +38,7 @@ def get_cid(mail):
 
 
 def parse_subject_for_slack(str):
-    ret_val = re.search(r" and has been", str)
+    ret_val = re.search(r" is", str)
     if ret_val:
         return str[0:ret_val.start()]
     else:
